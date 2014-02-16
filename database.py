@@ -99,6 +99,40 @@ class TaskTimeDatabase(Database):
         return self._getMaxId('tasks', 'taskId')
      
     _maxTaskId = property(_getMaxTaskId)
+    
+    def getUsers(self):
+        users = []
+        ids = []
+        self.connect()
+        query = QtSql.QSqlQuery(self.connection)
+        query.prepare('SELECT id, firstName, lastname FROM users')
+        query.exec_()
+        while query.next():
+            ids.append(query.value(0))
+            firstName = query.value(1)
+            lastName = query.value(2)
+            users.append('{1} {0}'.format(firstName, lastName))
+        self.close()
+        return users, ids
+        
+    def getUser(self, userId):
+        self.connect()
+        query = QtSql.QSqlQuery(self.connection)
+        query.prepare('SELECT id, firstName, lastname '
+            'FROM users WHERE id = {0}'.format(userId))
+        query.exec_()
+        query.next()
+        user = User(query.value(1), query.value(2), query.value(0))
+        self.close()
+        return user
+        
+        
+class User(object):
+    
+    def __init__(self, firstName, lastName, userId=None):
+        self.firstName = firstName
+        self.lastName = lastName
+        self.id = userId
 
 
 if __name__ == '__main__':

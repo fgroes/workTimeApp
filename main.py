@@ -1,3 +1,4 @@
+from database import *
 from tableModel import *
 from PySide import QtGui, QtCore
 import sys
@@ -7,6 +8,7 @@ class MainWindow(QtGui.QMainWindow):
     
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.database = TaskTimeDatabase('data.db')
         self.initUI()
         self.show()      
 
@@ -20,9 +22,30 @@ class MainWindow(QtGui.QMainWindow):
         centralWidget = QtGui.QWidget()
         self.fileMenu.addAction(exitAction)
         self.centralLayout = QtGui.QVBoxLayout()
+        self.topLayout = QtGui.QGridLayout()
+        self.centralLayout.addLayout(self.topLayout)
         self.calendar = QtGui.QCalendarWidget(parent=self)
         self.calendar.setFirstDayOfWeek(QtCore.Qt.Monday)
-        self.centralLayout.addWidget(self.calendar)
+        self.topLayout.addWidget(self.calendar, 0, 0)
+        self.topLayout.setColumnStretch(0, 1)
+        self.topRightLayout = QtGui.QVBoxLayout()
+        self.addUserButton = QtGui.QPushButton('Add User')
+        self.addUserButton.clicked.connect(self.addUser)
+        self.formLayout = QtGui.QFormLayout()
+        self.formLayout.setLabelAlignment(QtCore.Qt.AlignRight)
+        self.userComboBox = QtGui.QComboBox()
+        self.setUsers()
+        self.topRightLayout.addWidget(self.userComboBox)
+        self.topRightLayout.addLayout(self.formLayout)
+        self.firstNameText = QtGui.QLineEdit()
+        self.lastNameText = QtGui.QLineEdit()
+        self.userComboBox.currentIndexChanged.connect(self.userIndexChanged)
+        self.formLayout.addRow('First name:', self.firstNameText)
+        self.formLayout.addRow('Last name:', self.lastNameText)
+        self.topRightLayout.addWidget(self.addUserButton)
+        self.topRightLayout.addStretch()
+        self.topLayout.addLayout(self.topRightLayout, 0, 1)
+        self.topLayout.setColumnStretch(1, 1)
         self.tableView = QtGui.QTableView()   
         #self.setTable()
         self.calendar.clicked.connect(self.setCurrentDate)
@@ -51,6 +74,26 @@ class MainWindow(QtGui.QMainWindow):
         self.tableView.setModel(self.tableModel)
         for i in range(self.tableModel.columnCount()):
             self.tableView.setColumnWidth(i, 200)
+            
+    def addUser(self):
+        firstName = self.firstNameText.text()
+        lastName = self.lastNameText.text()
+        if firstName != '' and lastName != '':
+            self.database.addUser(firstName, lastName)
+        self.setUsers()
+        self.userComboBox.setCurrentIndex(len(self.users) - 1)
+            
+    def setUsers(self):
+        self.users, self.ids = self.database.getUsers()
+        currentIndex = self.userComboBox.currentIndex()
+        self.userComboBox.clear()
+        self.userComboBox.addItems(self.users)
+        self.userComboBox.setCurrentIndex(currentIndex)
+        
+    def userIndexChanged(self, index):
+        user = self.database.getUser(self.ids[index])
+        self.firstNameText.setText(user.firstName)
+        self.lastNameText.setText(user.lastName)
 
 
 def main():
