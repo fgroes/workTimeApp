@@ -58,3 +58,11 @@ class Table(object):
 		return len(self.data)
 
 	rowCount = property(getRowCount)
+
+
+if __name__ == '__main__':
+    table = Table(['time'])
+    for hour in range(0, 24):
+        for minute in range(0, 60, 30):
+            time = '{0:02d}:{1:02d}'.format(hour, minute)
+            table.addRow(time)
