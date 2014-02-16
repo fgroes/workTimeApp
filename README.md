@@ -1,4 +1,4 @@
-workTimeApp
+testGitWork
 ===========
 
-app to store work time
+test git for work
