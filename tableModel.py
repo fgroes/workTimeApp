@@ -1,10 +1,17 @@
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 
 class TableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent=None, *args):
         super(TableModel, self).__init__(parent, *args)
+        self.rowBrushes = []
+
+    def addRowBrush(self, rowColor):
+        self.rowBrushes.append(rowColor)
+        
+    def clearRowBrushes(self):
+        del self.rowBrushes[:]
         
     def setTable(self, table):
         self.table = table
@@ -18,9 +25,23 @@ class TableModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
             return None
-        elif role != QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole:
+            return self.table.getData(index.row(), index.column())
+        if role == QtCore.Qt.BackgroundRole:
+            isCurrentRow = [index.row() == rc.rowIndex 
+                for rc in self.rowBrushes]
+            if any(isCurrentRow): 
+                rowIndex = [idx for idx, row in enumerate(isCurrentRow) 
+                    if row]
+                print(rowIndex)
+                if (len(rowIndex) == 1):
+                    return self.rowBrushes[rowIndex[0]].brush
+                else:
+                    return None 
+            else:
+                return None
+        else:
             return None
-        return self.table.getData(index.row(), index.column())
 
     def headerData(self, index, orientation, role):
         if role != QtCore.Qt.DisplayRole:
@@ -39,6 +60,13 @@ class TableModel(QtCore.QAbstractTableModel):
             else:
                 result = index + 1
         return result
+        
+        
+class RowBrush(object):
+    
+    def __init__(self, rowIndex, brush):
+        self.rowIndex = rowIndex
+        self.brush = brush
 
     
 class Table(object):

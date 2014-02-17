@@ -8,6 +8,9 @@ class MainWindow(QtGui.QMainWindow):
     
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.rowBrushes = []
+        for i in range(20, 30):
+            self.rowBrushes.append(RowBrush(i, QtGui.QBrush(QtGui.QColor(0, 255, 0, 50))))
         self.database = TaskTimeDatabase('data.db')
         self.initUI()
         self.show()      
@@ -70,7 +73,10 @@ class MainWindow(QtGui.QMainWindow):
                     ['' for i in range(numberOfDaysInWeek)],
                     time)
         self.tableModel = TableModel()
+        for rowBrush in self.rowBrushes:
+            self.tableModel.addRowBrush(rowBrush)
         self.tableModel.setTable(table)
+        self.tableModel.setData(self.tableModel.index(0, 0), QtGui.QBrush(QtCore.Qt.red), QtCore.Qt.BackgroundRole)
         self.tableView.setModel(self.tableModel)
         for i in range(self.tableModel.columnCount()):
             self.tableView.setColumnWidth(i, 200)
